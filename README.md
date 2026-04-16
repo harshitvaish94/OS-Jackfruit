@@ -1,111 +1,90 @@
-# Multi-Container Runtime
+## 📸 Screenshots & Explanation
 
-A lightweight Linux container runtime in C with a long-running supervisor and a kernel-space memory monitor.
+---
+<img width="1209" height="260" alt="environement-pic1" src="https://github.com/user-attachments/assets/997e614b-46d5-4431-b204-b8bf0ccdc2a0" />
 
-Read [`project-guide.md`](project-guide.md) for the full project specification.
+
+### **Fig 1: Environment Setup Verification**
+This screenshot shows the execution of the environment preflight script.  
+It verifies that the system meets all requirements, including correct Ubuntu version, kernel headers availability, and successful loading of the monitoring module.  
+The successful output confirms that the environment is ready for building and running the container runtime.
 
 ---
 
-## Getting Started
+<img width="1020" height="81" alt="pic2" src="https://github.com/user-attachments/assets/30bc0eb1-5916-477c-bfbf-25a1a8297c3e" />
 
-### 1. Fork the Repository
 
-1. Go to [github.com/shivangjhalani/OS-Jackfruit](https://github.com/shivangjhalani/OS-Jackfruit)
-2. Click **Fork** (top-right)
-3. Clone your fork:
-
-```bash
-git clone https://github.com/<your-username>/OS-Jackfruit.git
-cd OS-Jackfruit
-```
-
-### 2. Set Up Your VM
-
-You need an **Ubuntu 22.04 or 24.04** VM with **Secure Boot OFF**. WSL will not work.
-
-Install dependencies:
-
-```bash
-sudo apt update
-sudo apt install -y build-essential linux-headers-$(uname -r)
-```
-
-### 3. Run the Environment Check
-
-```bash
-cd boilerplate
-chmod +x environment-check.sh
-sudo ./environment-check.sh
-```
-
-Fix any issues reported before moving on.
-
-### 4. Prepare the Root Filesystem
-
-```bash
-mkdir rootfs-base
-wget https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/x86_64/alpine-minirootfs-3.20.3-x86_64.tar.gz
-tar -xzf alpine-minirootfs-3.20.3-x86_64.tar.gz -C rootfs-base
-
-# Make one writable copy per container you plan to run
-cp -a ./rootfs-base ./rootfs-alpha
-cp -a ./rootfs-base ./rootfs-beta
-```
-
-Do not commit `rootfs-base/` or `rootfs-*` directories to your repository.
-
-### 5. Understand the Boilerplate
-
-The `boilerplate/` folder contains starter files:
-
-| File                   | Purpose                                             |
-| ---------------------- | --------------------------------------------------- |
-| `engine.c`             | User-space runtime and supervisor skeleton          |
-| `monitor.c`            | Kernel module skeleton                              |
-| `monitor_ioctl.h`      | Shared ioctl command definitions                    |
-| `Makefile`             | Build targets for both user-space and kernel module |
-| `cpu_hog.c`            | CPU-bound test workload                             |
-| `io_pulse.c`           | I/O-bound test workload                             |
-| `memory_hog.c`         | Memory-consuming test workload                      |
-| `environment-check.sh` | VM environment preflight check                      |
-
-Use these as your starting point. You are free to restructure the repository however you want — the submission requirements are listed in the project guide.
-
-### 6. Build and Verify
-
-```bash
-cd boilerplate
-make
-```
-
-If this compiles without errors, your environment is ready.
-
-### 7. GitHub Actions Smoke Check
-
-Your fork will inherit a minimal GitHub Actions workflow from this repository.
-
-That workflow only performs CI-safe checks:
-
-- `make -C boilerplate ci`
-- user-space binary compilation (`engine`, `memory_hog`, `cpu_hog`, `io_pulse`)
-- `./boilerplate/engine` with no arguments must print usage and exit with a non-zero status
-
-The CI-safe build command is:
-
-```bash
-make -C boilerplate ci
-```
-
-This smoke check does not test kernel-module loading, supervisor runtime behavior, or container execution.
+### **Fig 2: Kernel Module Compilation**
+This screenshot shows the compilation of the kernel module (`monitor.ko`).  
+The build process completes successfully without critical errors, indicating that the kernel-space component for monitoring container memory usage is correctly prepared.
 
 ---
 
-## What to Do Next
+<img width="1221" height="97" alt="pic3" src="https://github.com/user-attachments/assets/7805a092-fbaa-4f5e-b2b8-a1438762e15c" />
 
-Read [`project-guide.md`](project-guide.md) end to end. It contains:
 
-- The six implementation tasks (multi-container runtime, CLI, logging, kernel monitor, scheduling experiments, cleanup)
-- The engineering analysis you must write
-- The exact submission requirements, including what your `README.md` must contain (screenshots, analysis, design decisions)
+### **Fig 3: Root Filesystem Preparation**
+This screenshot shows the setup of container root filesystems using Alpine minirootfs.  
+Separate directories (`rootfs-alpha` and `rootfs-beta`) are created to provide isolated environments for each container.
 
-Your fork's `README.md` should be replaced with your own project documentation as described in the submission package section of the project guide. (As in get rid of all the above content and replace with your README.md)
+---
+
+<img width="1208" height="290" alt="pic4" src="https://github.com/user-attachments/assets/bab9002d-5586-4f4c-b777-328fee251c2f" />
+
+### **Fig 4: Alpha Container Execution (Interactive Shell)**
+This screenshot demonstrates running the `alpha` container with `/bin/sh`.  
+Basic commands like `ls`, `pwd`, and `echo` are executed inside the container, confirming proper isolation and functionality of the container environment.
+
+---
+
+<img width="1206" height="304" alt="pic5" src="https://github.com/user-attachments/assets/6a4f43fa-6392-4af1-a3d3-9ee9ecfa6772" />
+
+### **Fig 5: CPU Workload Execution**
+This screenshot shows the `beta` container running a CPU-intensive workload (`cpu_hog`).  
+The continuous output indicates active CPU usage, demonstrating that workloads can run independently inside containers.
+
+---
+<img width="696" height="283" alt="pic6og" src="https://github.com/user-attachments/assets/a3bdba3a-7b4b-4592-8d40-4bf056ed69e0" />
+
+### **Fig 6: Soft Limit Warning**
+This screenshot shows a soft memory limit warning generated by the monitoring system.  
+The container exceeds the predefined soft threshold, triggering a warning but allowing execution to continue.
+
+---
+
+### **Fig 7: Hard Limit Enforcement**
+Content is covered in previous screenshot
+This screenshot demonstrates enforcement of the hard memory limit.  
+Once the container exceeds the limit, it is automatically terminated by the system:
+[KILL] Hard limit exceeded. Killing beta  
+This confirms correct implementation of resource control.
+
+---
+
+<img width="686" height="138" alt="pic7" src="https://github.com/user-attachments/assets/6e3a2982-16e7-4d95-aaaa-e1503ae6b3c8" />
+
+### **Fig 8: Logs and IPC Verification**
+This screenshot shows the contents of:
+- `container.log` (container lifecycle events)
+- `ipc.txt` (CLI commands issued)
+
+This verifies that logging and inter-process communication mechanisms are functioning correctly.
+
+---
+
+<img width="917" height="290" alt="pic9" src="https://github.com/user-attachments/assets/85da7fd3-ef6e-4861-bf31-6b56c9772136" />
+
+
+### **Fig 9: Container Status (engine ps)**
+This screenshot displays the output of the `engine ps` command.  
+It shows container IDs, process IDs (PIDs), and their current status, confirming proper tracking and management of running containers.
+
+---
+
+<img width="1213" height="170" alt="pic8" src="https://github.com/user-attachments/assets/96e74bb5-a4c5-4c8f-bc75-07fbec0ba7ab" />
+
+### **Fig 10: Zombie Process Check**
+This screenshot shows the result of checking for zombie (defunct) processes using:
+ps aux | grep defunct  
+
+No defunct processes are present, indicating proper cleanup of terminated processes and overall system stability.
